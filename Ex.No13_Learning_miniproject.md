@@ -1,110 +1,91 @@
 # Ex.No: 13 Mini Project
-### DATE: 4.11.2024                                                                 
+### DATE:                                                                  
 ### REGISTER NUMBER : 212222040180
 
 ### AIM:
-To write a program to train a classifier for garbage classification with PyTorch.
+To build a machine learning model that accurately predicts a car's fuel consumption (MPG) based on its technical specifications.
 
 ### Algorithm:
-1. Import necessary libraries (PyTorch, Torchvision, etc.)
-2. Load the dataset of images representing different types of garbage
-3. Define the EfficientNet-B0 model and add a classification head to it
-4. Create data loaders for training and validation sets
-5. Train the model using the Adam optimizer and cross-entropy loss function
-6. Monitor the model's performance on the validation set during training
+1.Data Collection and Loading: Load the dataset containing car specifications and fuel consumption data (MPG).
+
+2.Data Preprocessing: Clean the data by handling missing values, converting data types, and normalizing features as needed.
+
+3.Data Splitting: Divide the dataset into training and testing sets to evaluate model performance.
+
+4.Model Training: Train a regression model, such as Random Forest Regressor, on the training set to predict MPG.
+
+5.Evaluation and Prediction: Evaluate the model’s performance on the test set using metrics like RMSE and R-squared, and use the trained model to predict MPG for 
+  new inputs.
+
 
 
 ### Program:
 ```python
-import torch
-import torchvision
-from torchvision import datasets, transforms, models
-from torch.utils.data import DataLoader
-import torch.optim as optim
-import torch.nn as nn
-import time
-import os
 
-data_dir = "garbage_classification"
-data_transforms = transforms.Compose([
-    transforms.RandomResizedCrop(224),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
 
-train_dataset = datasets.ImageFolder(data_dir, transform=data_transforms)
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
-num_classes = 12
+df = pd.read_csv('/content/auto-mpg.csv')
 
-model = models.efficientnet_b0(pretrained=True)
-model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = model.to(device)
+df.head()
 
-criterion = nn.CrossEntropyLoss()  
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+df = df.replace('?', np.nan)
+df = df.dropna()
 
-# Function to track training progress
-def train_model(model, criterion, optimizer, num_epochs=5):
-    for epoch in range(num_epochs):
-        print(f'Epoch {epoch+1}/{num_epochs}')
-        print('-' * 10)
+df['horsepower'] = df['horsepower'].astype(float)
 
-        model.train()  # Set model to training mode
-        running_loss = 0.0
-        running_corrects = 0
-        total_samples = 0
-        
-        start_time = time.time()
+X = df[['cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model year', 'origin']]
+y = df['mpg']
 
-        # Iterate over data in batches
-        for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-            # Zero the parameter gradients
-            optimizer.zero_grad()
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
 
-            # Forward pass
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            _, preds = torch.max(outputs, 1)
+y_pred = model.predict(X_test)
 
-            # Backward pass and optimization
-            loss.backward()
-            optimizer.step()
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
 
-            # Update statistics
-            running_loss += loss.item() * inputs.size(0)
-            running_corrects += torch.sum(preds == labels.data)
-            total_samples += labels.size(0)
+import pickle
 
-            # Print progress every 100 batches
-            if total_samples % 3200 == 0:
-                batch_loss = running_loss / total_samples
-                batch_acc = running_corrects.double() / total_samples
-                print(f"Progress: {total_samples}/{len(train_dataset)} - Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
+# Assuming 'model' is the trained model
+# Save the model to a file
+with open('fuel_prediction_model.pkl', 'wb') as file:
+    pickle.dump(model, file)
 
-        # End of epoch stats
-        epoch_loss = running_loss / len(train_loader.dataset)
-        epoch_acc = running_corrects.double() / len(train_loader.dataset)
+print("Model saved as 'fuel_prediction_model.pkl'")
 
-        print(f'Epoch {epoch+1} - Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
-        print(f'Time for epoch {epoch+1}: {time.time() - start_time:.2f} seconds\n')
+import pickle
+import numpy as np
 
-    return model
+# Load the model from the pickle file
+with open('fuel_prediction_model.pkl', 'rb') as file:
+    loaded_model = pickle.load(file)
 
+# Define your sample input
+# Replace these values with the specific details of the car you want to predict for
+# Sample input format: [cylinders, displacement, horsepower, weight, acceleration, model year, origin]
+sample_input = np.array([[6, 400, 130, 2004, 12.0, 70, 1]])
 
-model = train_model(model, criterion, optimizer, num_epochs=10)
-torch.save(model.state_dict,"garbage_classifier")
+# Use the loaded model to make a prediction
+predicted_mpg = loaded_model.predict(sample_input)
+
+print(f"Predicted MPG for the sample car: {predicted_mpg[0]:.2f}")
+
 ```
 
 
 ### Output:
 
-![image](https://github.com/user-attachments/assets/732febf2-7f8c-4f63-a35d-32c1af2cd8d4)<br>
-The Model reached an accuracy of 97.5% after 10 epochs against the test dataset.
+![image](https://github.com/user-attachments/assets/b57adb3c-2e96-414e-9ee3-66e125391213)
 
 
 ### Result:
-Thus the system was trained successfully and the prediction was carried out.
+
+The model successfully predicts a car's fuel efficiency (MPG) with reasonable accuracy based on its specifications.
+
