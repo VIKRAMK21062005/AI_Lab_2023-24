@@ -77,6 +77,34 @@ predicted_mpg = loaded_model.predict(sample_input)
 
 print(f"Predicted MPG for the sample car: {predicted_mpg[0]:.2f}")
 
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+# Assuming you have already split the data into training and test sets,
+# and have trained your model (model) and made predictions (y_pred) as shown earlier:
+
+# y_test contains the actual MPG values (true values) from the test set
+# y_pred contains the predicted MPG values from the model
+
+# Example: 
+# y_test = actual MPG values from your test data
+# y_pred = predicted MPG values from your model
+
+# Use this code after you have made predictions with the model:
+y_pred = model.predict(X_test)  # Model predictions on the test set
+
+# Evaluate the model using the actual test values (y_test) and predicted values (y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Print the results
+print(f"Mean Absolute Error (MAE): {mae:.2f}")
+print(f"Root Mean Squared Error (RMSE): {rmse:.2f}")
+print(f"R-squared Score (R²): {r2:.2f}")
+
+
 ```
 
 
@@ -84,6 +112,11 @@ print(f"Predicted MPG for the sample car: {predicted_mpg[0]:.2f}")
 
 ![image](https://github.com/user-attachments/assets/b57adb3c-2e96-414e-9ee3-66e125391213)
 
+```
+ Accuracy
+```
+
+![image](https://github.com/user-attachments/assets/4328dd2a-c30b-441c-987e-9557274897d9)
 
 ### Result:
 
