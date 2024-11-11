@@ -80,15 +80,6 @@ print(f"Predicted MPG for the sample car: {predicted_mpg[0]:.2f}")
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import numpy as np
 
-# Assuming you have already split the data into training and test sets,
-# and have trained your model (model) and made predictions (y_pred) as shown earlier:
-
-# y_test contains the actual MPG values (true values) from the test set
-# y_pred contains the predicted MPG values from the model
-
-# Example: 
-# y_test = actual MPG values from your test data
-# y_pred = predicted MPG values from your model
 
 # Use this code after you have made predictions with the model:
 y_pred = model.predict(X_test)  # Model predictions on the test set
